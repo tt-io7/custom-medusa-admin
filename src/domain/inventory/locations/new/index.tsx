@@ -6,7 +6,7 @@ import {
 } from "@medusajs/medusa"
 import {
   useAdminAddLocationToSalesChannel,
-  useAdminCreateStockLocation,
+  useAdminCreateLocation,
 } from "medusa-react"
 import { useForm } from "react-hook-form"
 import Button from "../../../../components/fundamentals/button"
@@ -48,7 +48,7 @@ const NewLocation = ({ onClose }: { onClose: () => void }) => {
   const notification = useNotification()
   const { isFeatureEnabled } = useFeatureFlag()
 
-  const { mutateAsync: createStockLocation } = useAdminCreateStockLocation()
+  const { mutateAsync: createStockLocation } = useAdminCreateLocation()
   const { mutateAsync: associateSalesChannel } =
     useAdminAddLocationToSalesChannel()
 
