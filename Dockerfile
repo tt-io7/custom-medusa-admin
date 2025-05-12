@@ -17,8 +17,8 @@ RUN yarn install --network-timeout 1000000
 # Copy the rest of the application
 COPY . .
 
-# Build the application with more verbose output
-RUN yarn build --verbose
+# Build the application
+RUN yarn build
 
 # Expose the port the app runs on
 EXPOSE 7000
