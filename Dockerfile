@@ -3,7 +3,7 @@ FROM node:14-alpine
 WORKDIR /app
 
 # Install dependencies needed for node-gyp and other build tools
-RUN apk add --no-cache python2 make g++ git
+RUN apk add --no-cache python3 make g++ git
 
 # Install serve globally
 RUN yarn global add serve
