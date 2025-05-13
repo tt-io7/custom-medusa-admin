@@ -9,7 +9,7 @@ RUN apk add --no-cache python3 make g++ git
 COPY package.json yarn.lock* ./
 
 # Install dependencies
-RUN yarn install --network-timeout 1000000 --frozen-lockfile
+RUN yarn install --network-timeout 1000000
 
 # Copy the rest of the app
 COPY . .
