@@ -1,30 +1,28 @@
-FROM node:14-alpine
+FROM node:16-alpine
 
 WORKDIR /app
 
-# Install dependencies needed for node-gyp and other build tools
+# Install build dependencies
 RUN apk add --no-cache python3 make g++ git
 
-# Install serve globally
-RUN yarn global add serve
-
-# Copy package.json and yarn.lock first for better layer caching
+# Copy package.json and yarn.lock
 COPY package.json yarn.lock ./
 
-# Install dependencies with more verbose output
-RUN yarn install --network-timeout 1000000
+# Install dependencies
+RUN yarn install --frozen-lockfile
 
-# Copy the rest of the application
+# Copy the rest of the app
 COPY . .
 
-# Create a .env file with required environment variables
-RUN echo "MEDUSA_BACKEND_URL=https://api.example.com" > .env
+# Set backend URL environment variable
+ENV MEDUSA_BACKEND_URL=https://your-backend-url.com
+# Can be overridden at runtime
 
-# Build the application
+# Build the app
 RUN yarn build
 
 # Expose the port the app runs on
-EXPOSE 7000
+EXPOSE 80
 
-# Command to run the app that will use the env vars from Railway at runtime
-CMD ["sh", "-c", "serve -s dist -l ${PORT:-7000}"] 
+# Command to run the app
+CMD ["yarn", "serve", "--port", "80", "--host", "0.0.0.0"] 
