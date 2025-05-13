@@ -6,10 +6,10 @@ WORKDIR /app
 RUN apk add --no-cache python3 make g++ git
 
 # Copy package.json and yarn.lock
-COPY package.json yarn.lock ./
+COPY package.json yarn.lock* ./
 
 # Install dependencies
-RUN yarn install --frozen-lockfile
+RUN yarn install --network-timeout 600000
 
 # Copy the rest of the app
 COPY . .
