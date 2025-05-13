@@ -1,4 +1,5 @@
 import medusaRequest from "./request"
+import Medusa from "@medusajs/medusa-js"
 
 const removeNullish = (obj) =>
   Object.entries(obj).reduce((a, [k, v]) => (v ? ((a[k] = v), a) : a), {})
@@ -11,6 +12,11 @@ const buildQueryFromObject = (search, prefix = "") =>
         : `${prefix ? `${prefix}[${key}]` : `${key}`}=${value}`
     )
     .join("&")
+
+const MEDUSA_BACKEND_URL = process.env.MEDUSA_BACKEND_URL || "http://localhost:9000"
+
+// Initialize the Medusa client
+export const medusaClient = new Medusa({ baseUrl: MEDUSA_BACKEND_URL })
 
 export default {
   returnReasons: {

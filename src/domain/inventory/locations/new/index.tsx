@@ -4,10 +4,6 @@ import {
   StockLocationAddressDTO,
   StockLocationAddressInput,
 } from "@medusajs/medusa"
-import {
-  useAdminAddLocationToSalesChannel,
-  useAdminCreateLocation,
-} from "medusa-react"
 import { useForm } from "react-hook-form"
 import Button from "../../../../components/fundamentals/button"
 import CrossIcon from "../../../../components/fundamentals/icons/cross-icon"
@@ -20,6 +16,7 @@ import { nestedForm } from "../../../../utils/nested-form"
 import AddressForm from "../components/address-form"
 import GeneralForm, { GeneralFormType } from "../components/general-form"
 import SalesChannelsForm from "../components/sales-channels-form"
+import medusaRequest from "../../../../services/request"
 
 type NewLocationForm = {
   general: GeneralFormType
@@ -48,13 +45,8 @@ const NewLocation = ({ onClose }: { onClose: () => void }) => {
   const notification = useNotification()
   const { isFeatureEnabled } = useFeatureFlag()
 
-  const { mutateAsync: createStockLocation } = useAdminCreateLocation()
-  const { mutateAsync: associateSalesChannel } =
-    useAdminAddLocationToSalesChannel()
-
   const createSalesChannelAssociationPromise = (salesChannelId, locationId) =>
-    associateSalesChannel({
-      sales_channel_id: salesChannelId,
+    medusaRequest("POST", `/admin/sales-channels/${salesChannelId}/stock-locations`, {
       location_id: locationId,
     })
 
@@ -62,7 +54,7 @@ const NewLocation = ({ onClose }: { onClose: () => void }) => {
     handleSubmit(async (data) => {
       const { locationPayload, salesChannelsPayload } = createPayload(data)
       try {
-        const { stock_location } = await createStockLocation(locationPayload)
+        const { stock_location } = await medusaRequest("POST", "/admin/stock-locations", locationPayload)
         Promise.all(
           salesChannelsPayload.map((salesChannel) =>
             createSalesChannelAssociationPromise(
