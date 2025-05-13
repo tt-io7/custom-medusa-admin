@@ -14,6 +14,9 @@ RUN yarn install --network-timeout 1000000
 # Copy the rest of the app
 COPY . .
 
+# Make start script executable
+RUN chmod +x start.sh
+
 # Create .env file with default values (will be overridden by Railway env vars)
 RUN echo "MEDUSA_BACKEND_URL=${MEDUSA_BACKEND_URL:-https://your-backend-url.com}" > .env
 
@@ -21,7 +24,7 @@ RUN echo "MEDUSA_BACKEND_URL=${MEDUSA_BACKEND_URL:-https://your-backend-url.com}
 RUN yarn build
 
 # Expose the port the app runs on
-EXPOSE 80
+EXPOSE 7000
 
-# Start the server
-CMD ["node", "server.js"] 
+# Start the server using our script
+CMD ["./start.sh"] 
