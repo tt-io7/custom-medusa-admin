@@ -3,7 +3,6 @@ import {
   StockLocationAddressDTO,
   StockLocationDTO,
 } from "@medusajs/medusa"
-import { useAdminUpdateStockLocation } from "medusa-react"
 import { useForm } from "react-hook-form"
 import Button from "../../../../components/fundamentals/button"
 import Modal from "../../../../components/molecules/modal"
@@ -12,6 +11,7 @@ import { getErrorMessage } from "../../../../utils/error-messages"
 import { nestedForm } from "../../../../utils/nested-form"
 import AddressForm from "../components/address-form"
 import GeneralForm, { GeneralFormType } from "../components/general-form"
+import medusaRequest from "../../../../services/request"
 
 type EditLocationForm = {
   general: GeneralFormType
@@ -36,23 +36,19 @@ const LocationEditModal = ({ onClose, location }: LocationEditModalProps) => {
   })
   const notification = useNotification()
 
-  const { mutate } = useAdminUpdateStockLocation(location.id)
-
   const { handleSubmit, formState } = form
 
   const { isDirty, isValid } = formState
 
   const onSubmit = handleSubmit(async (data) => {
     const payload = createPayload(data)
-    mutate(payload, {
-      onSuccess: () => {
-        onClose()
-        notification("Success", "Location edited successfully", "success")
-      },
-      onError: (err) => {
-        notification("Error", getErrorMessage(err), "error")
-      },
-    })
+    try {
+      await medusaRequest("POST", `/admin/stock-locations/${location.id}`, payload)
+      onClose()
+      notification("Success", "Location edited successfully", "success")
+    } catch (err) {
+      notification("Error", getErrorMessage(err), "error")
+    }
   })
 
   return (
