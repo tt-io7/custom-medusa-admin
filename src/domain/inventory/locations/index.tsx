@@ -1,4 +1,4 @@
-import { useAdminStockLocations } from "medusa-react"
+import { useState, useEffect } from "react"
 import Fade from "../../../components/atoms/fade-wrapper"
 import Spinner from "../../../components/atoms/spinner"
 import Button from "../../../components/fundamentals/button"
@@ -8,6 +8,9 @@ import useToggleState from "../../../hooks/use-toggle-state"
 import InventoryPageTableHeader from "../header"
 import NewLocation from "./new"
 import LocationCard from "./components/location-card"
+import medusaRequest from "../../../services/request"
+import useNotification from "../../../hooks/use-notification"
+import { getErrorMessage } from "../../../utils/error-messages"
 
 const Locations = () => {
   const {
@@ -16,16 +19,34 @@ const Locations = () => {
     open: openLocationCreate,
   } = useToggleState()
 
+  const [isLoading, setIsLoading] = useState(true)
+  const [stockLocations, setStockLocations] = useState([])
+  const notification = useNotification()
+
+  const fetchStockLocations = async () => {
+    setIsLoading(true)
+    try {
+      const { stock_locations } = await medusaRequest("GET", "/admin/stock-locations", {
+        expand: "address,sales_channels"
+      })
+      setStockLocations(stock_locations)
+    } catch (error) {
+      notification("Error", getErrorMessage(error), "error")
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    fetchStockLocations()
+  }, [])
+
   const Actions = (
     <Button variant="secondary" size="small" onClick={openLocationCreate}>
       <PlusIcon size={20} />
       Add location
     </Button>
   )
-
-  const { stock_locations, isLoading } = useAdminStockLocations({
-    expand: "address,sales_channels",
-  })
 
   return (
     <>
@@ -42,15 +63,18 @@ const Locations = () => {
             </div>
           ) : (
             <div>
-              {stock_locations?.map((stockLocation) => (
-                <LocationCard location={stockLocation} />
+              {stockLocations?.map((stockLocation) => (
+                <LocationCard key={stockLocation.id} location={stockLocation} />
               ))}
             </div>
           )}
         </div>
       </div>
       <Fade isVisible={createLocationState} isFullScreen={true}>
-        <NewLocation onClose={closeLocationCreate} />
+        <NewLocation onClose={() => {
+          closeLocationCreate()
+          fetchStockLocations()
+        }} />
       </Fade>
     </>
   )

@@ -1,4 +1,4 @@
-FROM node:16-alpine
+FROM node:18-alpine
 
 WORKDIR /app
 
@@ -9,14 +9,13 @@ RUN apk add --no-cache python3 make g++ git
 COPY package.json yarn.lock* ./
 
 # Install dependencies
-RUN yarn install --network-timeout 600000
+RUN yarn install --network-timeout 1000000 --frozen-lockfile
 
 # Copy the rest of the app
 COPY . .
 
-# Set backend URL environment variable
-ENV MEDUSA_BACKEND_URL=https://your-backend-url.com
-# Can be overridden at runtime
+# Create .env file with default values (will be overridden by Railway env vars)
+RUN echo "MEDUSA_BACKEND_URL=${MEDUSA_BACKEND_URL:-https://your-backend-url.com}" > .env
 
 # Build the app
 RUN yarn build

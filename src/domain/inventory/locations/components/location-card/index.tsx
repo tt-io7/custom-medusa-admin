@@ -12,18 +12,16 @@ import useToggleState from "../../../../../hooks/use-toggle-state"
 import LocationEditModal from "../../edit"
 import SalesChannelsSection from "../sales-channels-section"
 import useImperativeDialog from "../../../../../hooks/use-imperative-dialog"
-import { useAdminDeleteStockLocation } from "medusa-react"
 import useNotification from "../../../../../hooks/use-notification"
 import { getErrorMessage } from "../../../../../utils/error-messages"
 import { useFeatureFlag } from "../../../../../context/feature-flag"
+import medusaRequest from "../../../../../services/request"
 
 type Props = {
   location: StockLocationDTO
 }
 
 const LocationCard: React.FC<Props> = ({ location }) => {
-  const { mutate: deleteLocation } = useAdminDeleteStockLocation(location.id)
-
   const dialog = useImperativeDialog()
   const notification = useNotification()
   const { isFeatureEnabled } = useFeatureFlag()
@@ -34,6 +32,15 @@ const LocationCard: React.FC<Props> = ({ location }) => {
     open: openLocationEdit,
   } = useToggleState()
 
+  const deleteLocation = async () => {
+    try {
+      await medusaRequest("DELETE", `/admin/stock-locations/${location.id}`)
+      notification("Success", "Location deleted successfully", "success")
+    } catch (err) {
+      notification("Error", getErrorMessage(err), "error")
+    }
+  }
+
   const onDelete = async () => {
     const shouldDelete = await dialog({
       heading: "Delete Location",
@@ -42,14 +49,7 @@ const LocationCard: React.FC<Props> = ({ location }) => {
       entityName: location.name,
     })
     if (shouldDelete) {
-      deleteLocation(undefined, {
-        onSuccess: () => {
-          notification("Success", "Location deleted successfully", "success")
-        },
-        onError: (err) => {
-          notification("Error", getErrorMessage(err), "error")
-        },
-      })
+      deleteLocation()
     }
   }
 

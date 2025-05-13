@@ -1,11 +1,10 @@
 import { StockLocationExpandedDTO } from "@medusajs/medusa"
-import {
-  useAdminAddLocationToSalesChannel,
-  useAdminRemoveLocationFromSalesChannel,
-} from "medusa-react"
 import Button from "../../../../../components/fundamentals/button"
 import useToggleState from "../../../../../hooks/use-toggle-state"
 import SalesChannelsModal from "../../../../products/components/sales-channels-modal"
+import medusaRequest from "../../../../../services/request"
+import useNotification from "../../../../../hooks/use-notification"
+import { getErrorMessage } from "../../../../../utils/error-messages"
 
 const EditSalesChannels = ({
   location,
@@ -18,10 +17,36 @@ const EditSalesChannels = ({
     open: openSalesChannelsModal,
   } = useToggleState()
 
-  const { mutateAsync: addLocationToSalesChannel } =
-    useAdminAddLocationToSalesChannel()
-  const { mutateAsync: removeLocationFromSalesChannel } =
-    useAdminRemoveLocationFromSalesChannel()
+  const notification = useNotification()
+
+  const addLocationToSalesChannel = async ({ 
+    sales_channel_id, 
+    location_id 
+  }) => {
+    try {
+      return await medusaRequest("POST", 
+        `/admin/stock-locations/${location_id}/sales-channels`, 
+        { sales_channel_id }
+      )
+    } catch (error) {
+      notification("Error", getErrorMessage(error), "error")
+      throw error
+    }
+  }
+
+  const removeLocationFromSalesChannel = async ({ 
+    sales_channel_id, 
+    location_id 
+  }) => {
+    try {
+      return await medusaRequest("DELETE", 
+        `/admin/stock-locations/${location_id}/sales-channels/${sales_channel_id}`
+      )
+    } catch (error) {
+      notification("Error", getErrorMessage(error), "error")
+      throw error
+    }
+  }
 
   const onSave = async (channels) => {
     const existingChannels = location.sales_channels
@@ -37,20 +62,28 @@ const EditSalesChannels = ({
           (existingChannel) => existingChannel.id === channel.id
         )
     )
-    Promise.all([
-      ...channelsToRemove.map((channelToRemove) =>
-        removeLocationFromSalesChannel({
-          sales_channel_id: channelToRemove.id,
-          location_id: location.id,
-        })
-      ),
-      ...channelsToAdd.map((channelToAdd) =>
-        addLocationToSalesChannel({
-          sales_channel_id: channelToAdd.id,
-          location_id: location.id,
-        })
-      ),
-    ])
+    
+    try {
+      await Promise.all([
+        ...channelsToRemove.map((channelToRemove) =>
+          removeLocationFromSalesChannel({
+            sales_channel_id: channelToRemove.id,
+            location_id: location.id,
+          })
+        ),
+        ...channelsToAdd.map((channelToAdd) =>
+          addLocationToSalesChannel({
+            sales_channel_id: channelToAdd.id,
+            location_id: location.id,
+          })
+        ),
+      ])
+      
+      notification("Success", "Sales channels updated successfully", "success")
+      closeSalesChannelsModal()
+    } catch (error) {
+      // Error is already handled in the individual functions
+    }
   }
 
   return (
